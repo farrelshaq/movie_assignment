@@ -4,6 +4,9 @@ import '../controllers/movie_list_controller.dart';
 class MovieListBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => MovieListController());
+    Get.lazyPut(() => MovieListControlle());
   }
+}
+
+class MovieListControlle {
 }

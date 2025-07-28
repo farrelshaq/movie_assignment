@@ -1,35 +1,140 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:movie_slash/data/models/movie_models.dart';
 import 'package:movie_slash/data/services/tmdb_sevice.dart';
-<<<<<<< HEAD
-=======
-//import '../../../../data/models/movie_model.dart';
-//import '../../../../data/services/tmdb_service.dart';
->>>>>>> 6cc1b09e38427604da8adb470faded4bebf831e5
+import '../../movie_detail/pages/movie_detail_page.dart';
 
-class MovieListController extends GetxController {
-  final movies = <MovieModel>[].obs;
-  final isLoading = false.obs;
+class MovieListPage extends StatefulWidget {
+  const MovieListPage({super.key});
 
   @override
-  void onInit() {
-    fetchMovies();
-    super.onInit();
+  State<MovieListPage> createState() => _MovieListPageState();
+}
+
+class _MovieListPageState extends State<MovieListPage> {
+  final TmdbService _service = TmdbService();
+  List<MovieModel> movies = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMovies();
   }
 
-  void fetchMovies() async {
-    isLoading.value = true;
+  Future<void> _loadMovies() async {
     try {
-<<<<<<< HEAD
-      final result = await TmdbService().getTrendingMovies();
-=======
-      final result = await TMDBService().getTrendingMovies();
->>>>>>> 6cc1b09e38427604da8adb470faded4bebf831e5
-      movies.assignAll(result);
+      final fetchedMovies = await _service.fetchUpcomingMovies();
+      setState(() {
+        movies = fetchedMovies;
+        isLoading = false;
+      });
     } catch (e) {
-      print('Error fetching movies: $e');
-    } finally {
-      isLoading.value = false;
+      debugPrint('Error loading movies: $e');
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final heroMovie = movies[0];
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: ListView(
+          children: [
+            Stack(
+              children: [
+                Image.network(heroMovie.fullBackdropPath, width: double.infinity, height: 400, fit: BoxFit.cover),
+                Container(
+                  width: double.infinity,
+                  height: 400,
+                  color: Colors.black.withOpacity(0.5),
+                ),
+                Positioned(
+                  left: 16,
+                  bottom: 20,
+                  right: 16,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(heroMovie.title,
+                          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+                      const SizedBox(height: 8),
+                      Text(heroMovie.overview, maxLines: 3, overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white70)),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {},
+                            child: const Text('Watch Now'),
+                          ),
+                          const SizedBox(width: 10),
+                          OutlinedButton(
+                            onPressed: () => _showMovieDetail(heroMovie),
+                            child: const Text('Details', style: TextStyle(color: Colors.white)),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text("Trending Movies", style: TextStyle(color: Colors.white, fontSize: 20)),
+            ),
+            SizedBox(
+              height: 270,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: movies.length,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final movie = movies[index];
+                  return GestureDetector(
+                    onTap: () => _showMovieDetail(movie),
+                    child: Column(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(movie.fullPosterPath, height: 200),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: 120,
+                          child: Text(
+                            movie.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMovieDetail(MovieModel movie) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.black87,
+      builder: (_) => MovieDetailPage(movie: movie),
+    );
   }
 }
